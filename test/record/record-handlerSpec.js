@@ -44,6 +44,23 @@ describe( 'record handler handles messages', function(){
 		expect( clientA.socket.lastSendMessage ).toBe( msg( 'R|R|existingRecord|3|{"firstname":"Wolfram"}+' ));
 	});
 
+	it( 'returns an existing record with the read-only flag', function(){
+		var hasErrored = false;
+
+		try {
+			recordHandler.handle( clientA, {
+				topic: 'RECORD',
+				action: 'CR',
+				data: [ 'someRecord' ],
+				readOnly: true
+			});
+		} catch ( e ) {
+			hasErrored = true;
+		}
+
+		expect( hasErrored ).toBe( false );
+	});
+
 	it( 'patches a record', function(){
 		recordHandler.handle( clientB, {
 			raw: msg( 'R|P|existingRecord|4|lastname|SEgon' ),
@@ -150,5 +167,22 @@ describe( 'record handler handles messages', function(){
 		options.cache.get( 'existingRecord', function( error, record ){
 			expect( record ).toEqual( null );
 		});
+	});
+
+	it( 'throws an error when it tries to creates a non existing record with read-only', function(){
+		var hasErrored = true;
+
+		try {
+			recordHandler.handle( clientA, {
+				topic: 'RECORD',
+				action: 'CR',
+				data: [ 'someRecordThatDoesNotExist' ],
+				readOnly: true
+			});
+		} catch ( e ) {
+			hasErrored = true;
+		}
+
+		expect( hasErrored ).toBe( true );
 	});
 });
